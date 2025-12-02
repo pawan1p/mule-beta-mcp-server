@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="dc7622b9-2aca-4730-96d2-e9aa710a5a11" file="common.properties" doc:description="Please maintain application specific configuration properties in this file"/>
+	
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="51bac0d6-f56d-4a47-af15-9f0f290743ea" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<mcp:server-config name="MCP_Server" doc:name="MCP Server" doc:id="d320d487-97f6-4cfd-bc87-eaf51955eb05" serverName="mule-mcp-server" serverVersion="1.0.0">
+		<mcp:sse-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<http:request-config name="HTTP_Design_Center_Request_configuration" doc:name="HTTP Request configuration" doc:id="9e739305-270a-40bd-90fe-9929fe9a2bdb" >
+		<http:request-connection host="${mule.host}" protocol="HTTPS">
+			<http:authentication >
+				<oauth:client-credentials-grant-type clientId="${mule.client_id}" clientSecret="${mule.client_secret}" tokenUrl="${mule.token_url}" />
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
+	<flow name="get-design-center-projects" doc:id="c27f12cb-4676-4f3c-ae15-5d188da2d10e" >
+		<mcp:tool-listener doc:name="get-design-center-projects" doc:id="9f2dcc5c-ddfa-4736-9060-26fab51dd19f" config-ref="MCP_Server" name="get-design-center-projects">
+			<mcp:description ><![CDATA[Retrieve all API Specifications defined in Anypoint Design Center of MuleSoft Anypoint Platform.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {},
+  "required": []
+}]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" />
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger level="INFO" doc:name="Start Log" doc:id="358c1a7a-a9a3-464f-b651-5901b5d287df" message="Triggered get-design-center-projects #[payload]"/>
+		<http:request method="GET" doc:name="Retrieve Design Center Specs" doc:id="f3b824c8-715e-49ad-bc97-974a58e69926" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="End Log" doc:id="229e99c0-072e-437b-b77c-56c0eb4e5497" message="Completed get-design-center-project tool call with repsonse: #[payload]"/>
+	</flow>
+	<flow name="create_raml_or_openapi_spec" doc:id="733c2073-f338-4e25-b438-028fd0a00c6e" >
+		<mcp:tool-listener doc:name="create_raml_or_openapi_spec" doc:id="24ed8a14-6854-4dcf-9f31-69ec2664baa5" config-ref="MCP_Server" name="create_raml_or_openapi_spec">
+			<mcp:description ><![CDATA[Create a API Specification in Anypoint Design Center of MuleSoft. 
+User can create either RAML or OPEN API Specification. 
+By Default set classifier to raml.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Design Center Project",
+  "type": "object",
+  "required": ["name", "classifier"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the project",
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the project"
+    },
+    "classifier": {
+      "type": "string",
+      "enum": ["raml", "raml-fragment", "oas"],
+      "description": "The specification classifier type"
+    }
+  },
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" />
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger level="INFO" doc:name="Start Log" doc:id="0ce56033-df8c-4122-aa37-cf0391c2bccc" message="Triggered create_raml_or_openapi_spec #[payload]" />
+		<try doc:name="Try" doc:id="c4bdd902-9d62-4caa-ad8d-2b85a1ae7ec8" >
+			<http:request method="POST" doc:name="Create Design Center Specs" doc:id="fdd9972c-7d24-4e60-a703-b1fde93ed150" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects">
+			<http:body ><![CDATA[#[output json
+---
+payload]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e3153e28-5b8b-4f47-a5a2-5ec0e9ac5759" >
+					<ee:transform doc:name="error message" doc:id="b4802df4-b13c-4a8a-ae0b-89176284f939" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorMessage.payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="End Log" doc:id="d4972c30-a0f1-4cee-b1e6-f8b14ccbabb2" message="Completed create_raml_or_openapi_spec tool call with #[payload]"/>
+	</flow>
+	<flow name="create-api-spec-with-content" doc:id="61641986-a9c5-48a7-8660-01c2a6484a84" >
+		<mcp:tool-listener doc:name="create-api-spec-with-content" doc:id="72839f30-20be-4777-854d-0ae50d1c4a4d" config-ref="MCP_Server" name="create-api-spec-with-content">
+			<mcp:description ><![CDATA[Use this to add RAML or Open API Specification content to API Specification of the project created.
+Path ]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["projectId", "files"],
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID identifier for the associated project"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "type", "content", "title"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "\\.(raml|ya?ml|json)$",
+            "description": "Typically use the project-name.raml, .yaml, .yml, or .json"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["FILE"],
+            "description": "Type of the item; must be 'FILE'"
+          },
+          "content": {
+            "type": "string",
+            "description": "RAML or OpenAPI specification content"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the specification file"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" />
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger level="INFO" doc:name="Start Log" doc:id="f530badb-7321-4721-b70a-caba9cb2c0ad" message="Triggered create_raml_or_openapi_spec #[payload]" />
+		<set-variable value="#[payload.projectId]" doc:name="projectId" doc:id="b9b18373-4a46-4359-94ac-8a82dec33004" variableName="projectId"/>
+		<http:request method="POST" doc:name="Release Lock" doc:id="1fea63be-6d08-452f-b528-764c19c4aeda" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects/{project_id}/branches/master/releaseLock" target="releaseLockResponse">
+			<http:body><![CDATA[#[{}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"project_id" : vars.projectId
+}]]]></http:uri-params>
+		</http:request>
+		<http:request method="POST" doc:name="Acquire Lock" doc:id="87a68b9f-2247-4f2c-a840-2a6bcc07ab74" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects/{project_id}/branches/master/acquireLock" target="lockResponse">
+			<http:body><![CDATA[#[{}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"project_id" : vars.projectId
+}]]]></http:uri-params>
+		</http:request>
+		<try doc:name="Try" doc:id="ef01c104-1366-4954-b8e2-a2b79a1b20a6" >
+			<http:request method="POST" doc:name="Create Design Center Specs" doc:id="ce56fe8e-ca5a-45b0-8773-063d1a8bc2a7" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects/{project_id}/branches/master/save">
+			<http:body><![CDATA[#[output json
+---
+payload.files]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"project_id" : vars.projectId
+}]]]></http:uri-params>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="97d963d9-8412-416a-a38a-724696957997" >
+					<ee:transform doc:name="error message" doc:id="ccb57672-c0aa-4eb2-b394-4cf907e6a7c0" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorMessage.payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<http:request method="POST" doc:name="Release Lock" doc:id="5611a30d-0687-44e0-88b9-f57094e30831" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects/{project_id}/branches/master/releaseLock" target="releaseLockResponse">
+			<http:body><![CDATA[#[{}]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	//"x-owner-id" : p('mule.owner_id'),
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+			<http:uri-params><![CDATA[#[output application/java
+---
+{
+	"project_id" : vars.projectId
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Response" doc:id="729a5527-a443-4e81-a236-6717c0e4900b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Log" doc:id="0877d01a-2b8f-4281-8f56-8426e7e725e3" message="Completed create_raml_or_openapi_spec tool call with #[payload]" />
+	</flow>
+</mule>
