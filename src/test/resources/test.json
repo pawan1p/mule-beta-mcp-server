@@ -1,0 +1,83 @@
+{
+	"env": "pd",
+	"Status": "Completed",
+	"StatusMessage": "2 ERP PO from JDE Feed to SAP Process  completed ",
+	"StartTimestamp": "2025-12-02T10:38:15.17067953-06:00",
+	"EndTimestamp": "2025-12-02T10:43:18.070647274-06:00",
+	"Mule_CorrelationId": "4cacbf10-cf9d-11f0-bba3-66a4f45728d5",
+	"batch_and_order_combination": [
+		{
+			"BATCH_NO": "65140041",
+			"ORDER_NOS": [
+				"28024334"
+			]
+		},
+		{
+			"BATCH_NO": "65140071",
+			"ORDER_NOS": [
+				"28024351"
+			]
+		},
+		{
+			"BATCH_NO": "65140089",
+			"ORDER_NOS": [
+				"28024363"
+			]
+		},
+		{
+			"BATCH_NO": "65140096",
+			"ORDER_NOS": [
+				"28024369"
+			]
+		},
+		{
+			"BATCH_NO": "65140153",
+			"ORDER_NOS": [
+				"28024407"
+			]
+		},
+		{
+			"BATCH_NO": "65140191",
+			"ORDER_NOS": [
+				"28024471"
+			]
+		},
+		{
+			"BATCH_NO": "65140197",
+			"ORDER_NOS": [
+				"28024493"
+			]
+		}
+	],
+	"success_ordernumbers": [
+		{
+			"order_number": "28024334",
+			"batch_number": "65140041"
+		},
+		{
+			"order_number": "28024351",
+			"batch_number": "65140071"
+		},
+		{
+			"order_number": "28024363",
+			"batch_number": "65140089"
+		},
+		{
+			"order_number": "28024369",
+			"batch_number": "65140096"
+		},
+		{
+			"order_number": "28024407",
+			"batch_number": "65140153"
+		},
+		{
+			"order_number": "28024471",
+			"batch_number": "65140191"
+		},
+		{
+			"order_number": "28024493",
+			"batch_number": "65140197"
+		}
+	],
+	"failed_ordernumbers": []
+}

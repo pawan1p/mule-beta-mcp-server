@@ -22,6 +22,9 @@ http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oa
 			</http:authentication>
 		</http:request-connection>
 	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d7d650e3-f821-4011-b9e6-45fdfe147a2a" >
+		<http:request-connection protocol="HTTPS" />
+	</http:request-config>
 	<flow name="get-design-center-projects" doc:id="c27f12cb-4676-4f3c-ae15-5d188da2d10e" >
 		<mcp:tool-listener doc:name="get-design-center-projects" doc:id="9f2dcc5c-ddfa-4736-9060-26fab51dd19f" config-ref="MCP_Server" name="get-design-center-projects">
 			<mcp:description ><![CDATA[Retrieve all API Specifications defined in Anypoint Design Center of MuleSoft Anypoint Platform.]]></mcp:description>
@@ -40,22 +43,22 @@ http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oa
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 		</http:request>
 		<logger level="INFO" doc:name="End Log" doc:id="229e99c0-072e-437b-b77c-56c0eb4e5497" message="Completed get-design-center-project tool call with repsonse: #[payload]"/>
 	</flow>
 	<flow name="create_raml_or_openapi_spec" doc:id="733c2073-f338-4e25-b438-028fd0a00c6e" >
-		<mcp:tool-listener doc:name="create_raml_or_openapi_spec" doc:id="24ed8a14-6854-4dcf-9f31-69ec2664baa5" config-ref="MCP_Server" name="create_raml_or_openapi_spec">
+		<!-- [STUDIO:"create_raml_or_openapi_spec"]<mcp:tool-listener doc:name="create_raml_or_openapi_spec" doc:id="24ed8a14-6854-4dcf-9f31-69ec2664baa5" config-ref="MCP_Server" name="create_raml_or_openapi_spec">
 			<mcp:description ><![CDATA[Create a API Specification in Anypoint Design Center of MuleSoft. 
 User can create either RAML or OPEN API Specification. 
-By Default set classifier to raml.]]></mcp:description>
+By Default set classifier to raml.&#93;&#93;></mcp:description>
 			<mcp:parameters-schema ><![CDATA[{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Design Center Project",
   "type": "object",
-  "required": ["name", "classifier"],
+  "required": ["name", "classifier"&#93;,
   "properties": {
     "name": {
       "type": "string",
@@ -68,17 +71,17 @@ By Default set classifier to raml.]]></mcp:description>
     },
     "classifier": {
       "type": "string",
-      "enum": ["raml", "raml-fragment", "oas"],
+      "enum": ["raml", "raml-fragment", "oas"&#93;,
       "description": "The specification classifier type"
     }
   },
   "additionalProperties": false
 }
-]]></mcp:parameters-schema>
+&#93;&#93;></mcp:parameters-schema>
 			<mcp:responses >
-				<mcp:text-tool-response-content text="#[payload.^raw]" />
+				<mcp:text-tool-response-content text="#[payload.^raw&#93;" />
 			</mcp:responses>
-		</mcp:tool-listener>
+		</mcp:tool-listener> [STUDIO] -->
 		<logger level="INFO" doc:name="Start Log" doc:id="0ce56033-df8c-4122-aa37-cf0391c2bccc" message="Triggered create_raml_or_openapi_spec #[payload]" />
 		<try doc:name="Try" doc:id="c4bdd902-9d62-4caa-ad8d-2b85a1ae7ec8" >
 			<http:request method="POST" doc:name="Create Design Center Specs" doc:id="fdd9972c-7d24-4e60-a703-b1fde93ed150" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects">
@@ -88,7 +91,7 @@ payload]]]></http:body>
 				<http:headers><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 		</http:request>
@@ -107,14 +110,124 @@ error.errorMessage.payload]]></ee:set-payload>
 		</try>
 		<logger level="INFO" doc:name="End Log" doc:id="d4972c30-a0f1-4cee-b1e6-f8b14ccbabb2" message="Completed create_raml_or_openapi_spec tool call with #[payload]"/>
 	</flow>
+	<flow name="get-eshopper-shipment-status" doc:id="f749b5b3-4b1e-4499-b1bd-aceb0904187a" >
+		<mcp:tool-listener doc:name="get eshopper shipment status" doc:id="b66054c2-78c7-4070-b618-defd6f24e689" config-ref="MCP_Server" name="get-eshopper-shipment-status">
+			<mcp:description ><![CDATA[Get Eshopper Shipment Status based on shipment id recieved from request . It is ONLY be used for Shipment 
+]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EShopper Shipment Status",
+  "type": "object",
+  "required": ["shipmentId"],
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "description": "Shipment Id",
+      "maxLength": 100
+    }
+  },
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" />
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger level="INFO" doc:name="Start Log" doc:id="4d53c816-9419-44cf-9c74-5e2af872fd83" message="Shipment id Triggered get-eshopper-shipment-status #[payload] , shipmentId #[payload.shipmentId]" />
+		<set-variable value="#[payload.shipmentId default payload.name]" doc:name="shipmentId" doc:id="fc9f35ce-01d6-4312-b8b3-f0601f4c6123" variableName="shipmentId"/>
+		<logger level="INFO" doc:name="shipmentId" doc:id="721e8ffb-edc1-4562-9bfa-d3898f1b365d" message="shipmentId #[vars.shipmentId]"/>
+		<try doc:name="Try" doc:id="17039165-2aa3-4662-9481-0678701e944a" >
+			<http:request method="GET" doc:name="get-eshopper-shipment-status" doc:id="e2d7a4f5-25bb-4e96-b341-acaa0ffce3b7" config-ref="HTTP_Request_configuration" url="#['https://eshopper-shipment-services-muhspn.5sc6y6-2.usa-e2.cloudhub.io/eshopper/shipment/status/' ++ vars.shipmentId]" sendCorrelationId="ALWAYS">
+			<http:body ><![CDATA[#[output json
+---
+payload]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"x-owner-id" : p('mule.owner_id'),
+	"Content-Type" : "application/json",
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="4b8b0def-e845-432b-943b-e41ece5e6348" >
+					<ee:transform doc:name="error message" doc:id="cdb8901c-a1df-4de7-895b-97e72c7e87ec" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorMessage.payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="End Log" doc:id="93431359-ad5f-4014-8fdb-849cd098f3f4" message="Completed get-eshopper-shipment-status call with #[payload]"/>
+	</flow>
+	
+	<flow name="get-eshopper-order-status" doc:id="f75476b0-61ae-466d-946d-8817762568cc" >
+		<mcp:tool-listener doc:name="get eshopper order status" doc:id="a882e50a-d14e-43a6-8616-9d7e3e23d8bd" config-ref="MCP_Server" name="get-eshopper-order-status">
+			<mcp:description ><![CDATA[Get Eshopper Order Status based on order id recieved from request . It is ONLY be used for Orders 
+]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EShopper Order Status",
+  "type": "object",
+  "required": ["orderId"],
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "description": "Order Id",
+      "maxLength": 100
+    }
+  },
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" />
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger level="INFO" doc:name="Start Log" doc:id="850fffdf-348c-4ffc-93d9-a47984f93a5d" message="Order id Triggered get-eshopper-order-status #[payload] , orderId #[payload.orderId]" />
+		<set-variable value="#[payload.orderId default payload.name]" doc:name="orderId" doc:id="b7d2a846-dce0-48b5-8667-29b06b067372" variableName="orderId"/>
+		<logger level="INFO" doc:name="orderId" doc:id="a59af027-916b-405f-8e56-8099a0eac2e5" message="orderId #[vars.orderId]"/>
+		<try doc:name="Try" doc:id="82ad6dd8-77db-4c6d-8fa7-11d5501c994d" >
+			<http:request method="GET" doc:name="get-eshopper-order-status" doc:id="e0e16760-6d3b-4a4d-a191-daa20239c34f" config-ref="HTTP_Request_configuration" url="#['https://eshopper-order-services-muhspn.5sc6y6-2.usa-e2.cloudhub.io/eshopper/order/status/' ++ vars.orderId]" sendCorrelationId="ALWAYS">
+			<http:body ><![CDATA[#[output json
+---
+payload]]]></http:body>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"x-owner-id" : p('mule.owner_id'),
+	"Content-Type" : "application/json",
+	"x-organization-id" : p('mule.org_id')
+}]]]></http:headers>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="5a31d5cf-87b1-469c-90c6-2db0b2cd42f5" >
+					<ee:transform doc:name="error message" doc:id="e5f8e4fc-5ee9-4578-a155-f2d4452898a0" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+error.errorMessage.payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="End Log" doc:id="6e11626c-a8b4-4686-9e29-ab31d803d4ea" message="Completed get-eshopper-order-status call with #[payload]"/>
+	</flow>
+	
 	<flow name="create-api-spec-with-content" doc:id="61641986-a9c5-48a7-8660-01c2a6484a84" >
-		<mcp:tool-listener doc:name="create-api-spec-with-content" doc:id="72839f30-20be-4777-854d-0ae50d1c4a4d" config-ref="MCP_Server" name="create-api-spec-with-content">
+		<!-- [STUDIO:"create-api-spec-with-content"]<mcp:tool-listener doc:name="create-api-spec-with-content" doc:id="72839f30-20be-4777-854d-0ae50d1c4a4d" config-ref="MCP_Server" name="create-api-spec-with-content">
 			<mcp:description ><![CDATA[Use this to add RAML or Open API Specification content to API Specification of the project created.
-Path ]]></mcp:description>
+Path &#93;&#93;></mcp:description>
 			<mcp:parameters-schema ><![CDATA[{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["projectId", "files"],
+  "required": ["projectId", "files"&#93;,
   "properties": {
     "projectId": {
       "type": "string",
@@ -125,7 +238,7 @@ Path ]]></mcp:description>
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["path", "type", "content", "title"],
+        "required": ["path", "type", "content", "title"&#93;,
         "properties": {
           "path": {
             "type": "string",
@@ -134,7 +247,7 @@ Path ]]></mcp:description>
           },
           "type": {
             "type": "string",
-            "enum": ["FILE"],
+            "enum": ["FILE"&#93;,
             "description": "Type of the item; must be 'FILE'"
           },
           "content": {
@@ -152,11 +265,11 @@ Path ]]></mcp:description>
   },
   "additionalProperties": false
 }
-]]></mcp:parameters-schema>
+&#93;&#93;></mcp:parameters-schema>
 			<mcp:responses >
-				<mcp:text-tool-response-content text="#[payload.^raw]" />
+				<mcp:text-tool-response-content text="#[payload.^raw&#93;" />
 			</mcp:responses>
-		</mcp:tool-listener>
+		</mcp:tool-listener> [STUDIO] -->
 		<logger level="INFO" doc:name="Start Log" doc:id="f530badb-7321-4721-b70a-caba9cb2c0ad" message="Triggered create_raml_or_openapi_spec #[payload]" />
 		<set-variable value="#[payload.projectId]" doc:name="projectId" doc:id="b9b18373-4a46-4359-94ac-8a82dec33004" variableName="projectId"/>
 		<http:request method="POST" doc:name="Release Lock" doc:id="1fea63be-6d08-452f-b528-764c19c4aeda" config-ref="HTTP_Design_Center_Request_configuration" path="designcenter/api-designer/projects/{project_id}/branches/master/releaseLock" target="releaseLockResponse">
@@ -164,7 +277,7 @@ Path ]]></mcp:description>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
@@ -178,7 +291,7 @@ Path ]]></mcp:description>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
@@ -195,7 +308,7 @@ payload.files]]]></http:body>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
@@ -222,7 +335,7 @@ error.errorMessage.payload]]></ee:set-payload>
 			<http:headers><![CDATA[#[output application/java
 ---
 {
-	//"x-owner-id" : p('mule.owner_id'),
+	"x-owner-id" : p('mule.owner_id'),
 	"x-organization-id" : p('mule.org_id')
 }]]]></http:headers>
 			<http:uri-params><![CDATA[#[output application/java
