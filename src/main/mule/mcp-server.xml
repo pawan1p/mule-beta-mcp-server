@@ -354,4 +354,79 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<logger level="INFO" doc:name="End Log" doc:id="0877d01a-2b8f-4281-8f56-8426e7e725e3" message="Completed create_raml_or_openapi_spec tool call with #[payload]" />
 	</flow>
+	<flow name="create-integration-design">
+		<mcp:tool-listener config-ref="MCP_Server" name="create integration design">
+		    <mcp:description><![CDATA[Create an integration design using the APIs available in MuleSoft Anypoint Platform.]]></mcp:description>
+		    <mcp:parameters-schema><![CDATA[{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Create Integration Design",
+  "type": "object",
+  "required": ["Source", "Target"],
+  "properties": {
+    "Source": {
+      "type": "string",
+      "description": "Source System",
+      "maxLength": 100
+    },
+	"Target": {
+      "type": "string",
+      "description": "Target System",
+      "maxLength": 100
+    }
+  },
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+		    <mcp:responses>
+			<mcp:text-tool-response-content text="payload.^raw"/>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<logger doc:name="Logger" doc:id="noucdx" message="started get API from exchange"/>
+		<ee:transform doc:name="Transform Message" doc:id="xnqjeq" >
+			<ee:message >
+				<ee:set-payload doc:name="Set payload" doc:id="ozhxrq" ><![CDATA[%dw 2.0
+		output application/json
+		---
+	[{
+"API Name" : "Shopify Order Management experience API",
+"Type" : "Experience",
+"Method" : "POST",
+"System" : "Shopify",
+"Business Process" : "Orders"
+},
+{
+"API Name" : "Order management process API",
+"Type" : "Process",
+"Method" : "POST",
+"System" : "NA",
+  "Business Process" : "Orders"
+}
+,
+{
+"API Name" : "SAP Order management system API",
+"Type" : "System",
+"Method" : "POST",
+"System" : "SAP",
+  "Business Process" : "Orders"
+},
+    {
+"API Name" : "JDE Transportation management system API",
+"Type" : "System",
+"Method" : "POST",
+"System" : "JDE",
+  "Business Process" : "Transportation"
+},
+    {
+"API Name" : "JDE Order management system API",
+"Type" : "System",
+"Method" : "POST",
+"System" : "JDE",
+  "Business Process" : "Orders"
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger doc:name="Logger" doc:id="ouvfma" message="ended API from exchange"/>
+				
+	</flow>
+
 </mule>
