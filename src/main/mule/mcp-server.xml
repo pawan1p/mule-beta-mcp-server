@@ -354,8 +354,8 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<logger level="INFO" doc:name="End Log" doc:id="0877d01a-2b8f-4281-8f56-8426e7e725e3" message="Completed create_raml_or_openapi_spec tool call with #[payload]" />
 	</flow>
-	<flow name="create-integration-design">
-		<mcp:tool-listener config-ref="MCP_Server" name="create integration design">
+<flow name="create-integration-design">
+		<mcp:tool-listener config-ref="MCP_Server" name="create-integration-design">
 		    <mcp:description><![CDATA[Create an integration design using the APIs available in MuleSoft Anypoint Platform.]]></mcp:description>
 		    <mcp:parameters-schema><![CDATA[{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -427,6 +427,6 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<logger doc:name="Logger" doc:id="ouvfma" message="ended API from exchange"/>
 				
-	</flow>
+				</flow>
 
 </mule>
